@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MegaCorp SQL Escape Room</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --surface: #0f1520;
+    --surface2: #161e2e;
+    --border: #1e2d47;
+    --border2: #2a3f5f;
+    --accent: #00d4ff;
+    --accent2: #0091b5;
+    --green: #00ff9d;
+    --green2: #00b36e;
+    --red: #ff4757;
+    --amber: #ffa502;
+    --text: #e8f0fe;
+    --muted: #6b82a8;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Scanline effect */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center;
+    padding: 3rem 0 2.5rem;
+    position: relative;
+  }
+
+  .header-logo {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+  }
+
+  .header h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-sub {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 0.75rem;
+    letter-spacing: 2px;
+  }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    max-width: 440px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-family: var(--mono);
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 1.25rem;
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0,212,255,0.1);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    font-weight: 600;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-primary:hover { background: #33ddff; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    padding: 0.5rem 1rem;
+  }
+  .btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .player-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+  }
+
+  .player-dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .player-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .timer-display {
+    font-family: var(--mono);
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    font-weight: 600;
+  }
+
+  .timer-display.warning { color: var(--amber); }
+  .timer-display.danger { color: var(--red); animation: blink 0.5s infinite; }
+
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  .room-progress {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .room-pip {
+    flex: 1;
+    min-width: 20px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+
+  .room-pip.done { background: var(--green); }
+  .room-pip.current { background: var(--accent); animation: shimmer 1.5s infinite; }
+
+  @keyframes shimmer {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* ── ROOM CARD ── */
+  .room-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .room-number {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+
+  .room-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+
+  .difficulty {
+    display: flex;
+    gap: 3px;
+    margin-top: 0.5rem;
+  }
+
+  .diff-pip {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    background: var(--border2);
+  }
+
+  .diff-pip.on { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+
+  .story-block {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #b8c8e0;
+  }
+
+  .story-block strong { color: var(--text); }
+
+  .question-block {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .question-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .question-text {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .tables-hint {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .table-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.2);
+    color: var(--accent);
+    padding: 2px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .db-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    transition: all 0.15s;
+    background: rgba(0,212,255,0.05);
+  }
+
+  .db-link:hover { background: rgba(0,212,255,0.12); border-color: var(--accent); }
+
+  .db-link svg { width: 14px; height: 14px; }
+
+  /* ── ANSWER INPUT ── */
+  .answer-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .answer-row input {
+    flex: 1;
+    margin-bottom: 0;
+    font-size: 18px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .btn-submit {
+    background: var(--green);
+    color: #000;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-submit:hover { background: #33ffb8; transform: translateY(-1px); }
+
+  .answer-feedback {
+    margin-top: 0.75rem;
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    display: none;
+  }
+
+  .answer-feedback.correct {
+    background: rgba(0,255,157,0.1);
+    border: 1px solid rgba(0,255,157,0.3);
+    color: var(--green);
+    display: block;
+  }
+
+  .answer-feedback.wrong {
+    background: rgba(255,71,87,0.1);
+    border: 1px solid rgba(255,71,87,0.3);
+    color: var(--red);
+    display: block;
+  }
+
+  /* ── SCHEMA PANEL ── */
+  .schema-toggle {
+    margin-bottom: 1.5rem;
+  }
+
+  .schema-content {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: none;
+    margin-top: 0.75rem;
+  }
+
+  .schema-content.open { display: block; }
+
+  .schema-table {
+    margin-bottom: 1rem;
+  }
+
+  .schema-table-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .schema-fields {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.8;
+    padding-left: 1rem;
+  }
+
+  .schema-fields span { color: #4e9af1; }
+
+  /* ── WIN SCREEN ── */
+  #win-screen {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+
+  .win-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  .win-title {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--green), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+
+  .win-sub {
+    font-family: var(--mono);
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 2px;
+    margin-bottom: 2rem;
+  }
+
+  .win-stats {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    min-width: 120px;
+  }
+
+  .stat-val {
+    font-family: var(--mono);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* ── LEADERBOARD ── */
+  #leaderboard-screen { display: none; }
+
+  .lb-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 13px;
+    transition: background 0.15s;
+  }
+
+  .lb-row:hover { background: var(--surface2); }
+  .lb-row:last-child { border-bottom: none; }
+
+  .lb-rank {
+    width: 24px;
+    color: var(--muted);
+    text-align: center;
+    font-size: 11px;
+  }
+
+  .lb-rank.gold { color: #ffd700; font-weight: 700; }
+  .lb-rank.silver { color: #c0c0c0; font-weight: 700; }
+  .lb-rank.bronze { color: #cd7f32; font-weight: 700; }
+
+  .lb-name { flex: 1; color: var(--text); }
+
+  .lb-room {
+    color: var(--accent);
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .lb-room.done { color: var(--green); }
+
+  .lb-time {
+    color: var(--muted);
+    min-width: 70px;
+    text-align: right;
+    font-size: 11px;
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+  }
+
+  .nav-tab {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s;
+    border: none;
+    background: transparent;
+  }
+
+  .nav-tab.active {
+    background: var(--surface2);
+    color: var(--accent);
+    border: 1px solid var(--border2);
+  }
+
+  /* ── TRANSITIONS ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .fade-in {
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* room unlock flash */
+  .unlock-flash {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,255,157,0.05);
+    pointer-events: none;
+    z-index: 999;
+    animation: flashIn 0.6s ease forwards;
+  }
+
+  @keyframes flashIn {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  .attempts-counter {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HEADER (always visible) -->
+  <div class="header">
+    <div class="header-logo">◈ MegaCorp Industries ◈</div>
+    <h1>SQL ESCAPE ROOM</h1>
+    <div class="header-sub">// SECURITY INVESTIGATION UNIT //</div>
+  </div>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="screen active">
+    <div class="card fade-in">
+      <div class="card-title">▸ Agent Login</div>
+      <label for="player-name-input">Your name</label>
+      <input type="text" id="player-name-input" placeholder="e.g. Sarah Chen" maxlength="30" autocomplete="off" />
+      <label for="db-url-input">DB-Fiddle URL (provided by host)</label>
+      <input type="text" id="db-url-input" placeholder="https://www.db-fiddle.com/f/..." />
+      <button class="btn btn-primary" onclick="startGame()">
+        <span>▶</span> Begin Investigation
+      </button>
+      <div id="login-error" style="color:var(--red);font-family:var(--mono);font-size:12px;margin-top:0.75rem;display:none;"></div>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen" class="screen">
+
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showTab('room-tab', this)">◈ Current Room</button>
+      <button class="nav-tab" onclick="showTab('schema-tab', this)">⊞ Schema</button>
+      <button class="nav-tab" onclick="showTab('lb-tab', this)">◎ Leaderboard</button>
+    </div>
+
+    <!-- ROOM TAB -->
+    <div id="room-tab" class="tab-content">
+
+      <div class="progress-header">
+        <div class="player-badge">
+          <div class="player-dot"></div>
+          <div class="player-name" id="display-name">Agent</div>
+        </div>
+        <div class="timer-display" id="timer">00:00</div>
+      </div>
+
+      <div class="room-progress" id="room-progress"></div>
+
+      <div class="card fade-in" id="room-card">
+        <div class="room-header">
+          <div>
+            <div class="room-number" id="room-number">Room 01 / 10</div>
+            <div class="room-title" id="room-title">Loading...</div>
+            <div class="difficulty" id="room-difficulty"></div>
+          </div>
+        </div>
+
+        <div class="story-block" id="room-story"></div>
+
+        <div class="question-block">
+          <div class="question-label">▸ Your mission</div>
+          <div class="question-text" id="room-question"></div>
+          <div class="tables-hint" id="room-tables"></div>
+        </div>
+
+        <a id="db-link-btn" href="#" target="_blank" class="db-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+          Open Database in DB-Fiddle ↗
+        </a>
+
+        <label for="answer-input">Your answer</label>
+        <div class="answer-row">
+          <input type="text" id="answer-input" placeholder="Type your answer..." autocomplete="off"
+            onkeydown="if(event.key==='Enter') submitAnswer()" />
+          <button class="btn-submit" onclick="submitAnswer()">SUBMIT</button>
+        </div>
+        <div class="answer-feedback" id="answer-feedback"></div>
+        <div class="attempts-counter" id="attempts-counter"></div>
+      </div>
+    </div>
+
+    <!-- SCHEMA TAB -->
+    <div id="schema-tab" class="tab-content" style="display:none;">
+      <div class="card">
+        <div class="card-title">▸ MegaCorp Database Schema</div>
+        <div id="schema-display"></div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD TAB -->
+    <div id="lb-tab" class="tab-content" style="display:none;">
+      <div class="card">
+        <div class="card-title">▸ Live Leaderboard</div>
+        <div id="leaderboard-list"></div>
+        <div style="text-align:center;margin-top:1rem;">
+          <button class="btn btn-ghost" onclick="renderLeaderboard()">↺ Refresh</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- WIN SCREEN -->
+  <div id="win-screen" class="screen">
+    <div class="card fade-in" style="text-align:center;">
+      <div class="win-icon">🏆</div>
+      <div class="win-title">ESCAPED!</div>
+      <div class="win-sub" id="win-player-name">Agent — investigation complete</div>
+      <div class="win-stats">
+        <div class="stat-box">
+          <div class="stat-val" id="win-time">—</div>
+          <div class="stat-label">Total Time</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="win-attempts">—</div>
+          <div class="stat-label">Wrong Attempts</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">10</div>
+          <div class="stat-label">Rooms Cleared</div>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-family:var(--mono);font-size:13px;line-height:1.6;max-width:400px;margin:0 auto 1.5rem;">
+        You uncovered every secret inside MegaCorp Industries.<br>The investigation is complete.
+      </p>
+      <button class="btn btn-ghost" onclick="playAgain()">↺ Play Again</button>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ─────────────────────────────────────────────
+//  ROOM DATA
+// ─────────────────────────────────────────────
+const ROOMS = [
+  {
+    title: "The New Hire Mystery",
+    difficulty: 1,
+    story: "Welcome to MegaCorp Industries. It's your first day in the Investigations Unit. HR has flagged an anomaly — someone was hired in <strong>2023</strong> but was never assigned to a department. Before they receive another paycheck, you need to find them.",
+    question: "Find the full name of the employee who was hired in 2023 and has no department assigned.",
+    tables: ["employees"],
+    answer: "JORDAN BLAKE",
+    hint: "Look for NULL values in the dept_id column"
+  },
+  {
+    title: "The Phantom Project",
+    difficulty: 1,
+    story: "The CFO is furious. A project has a <strong>$1.5 million budget</strong> approved — but nobody has been assigned to it yet. Finance needs the exact budget figure to freeze the account before more funds are allocated.",
+    question: "Find the name and budget of any active project that has no employees assigned to it. Your answer is the budget number only.",
+    tables: ["projects", "assignments"],
+    answer: "1500000",
+    hint: "Use a LEFT JOIN and filter for NULLs on the joined side"
+  },
+  {
+    title: "The Bonus Bandit",
+    difficulty: 2,
+    story: "An internal audit has flagged unusual activity in the Finance department. Someone has been approving <strong>multiple bonus payments for themselves</strong> in a single month. The auditors need a name.",
+    question: "Find the name of the employee who received more than 3 bonus transactions in January 2024 where approved_by equals their own employee id.",
+    tables: ["transactions", "employees"],
+    answer: "DEREK VOSS",
+    hint: "GROUP BY employee, HAVING COUNT(*) > 3, and filter where approved_by = employee_id"
+  },
+  {
+    title: "The Overachiever",
+    difficulty: 2,
+    story: "The compensation committee has flagged potential pay equity issues. They need to identify everyone earning above their <strong>own department's average salary</strong>. The first name on the list — sorted by salary descending — is the most extreme case.",
+    question: "List employees who earn more than their department's average salary, ordered by salary descending. Your answer is the last name of the first person in the list.",
+    tables: ["employees"],
+    answer: "HARLOW",
+    hint: "Use a correlated subquery: WHERE salary > (SELECT AVG(salary) FROM employees e2 WHERE e2.dept_id = e.dept_id)"
+  },
+  {
+    title: "The Ghost Payroll",
+    difficulty: 3,
+    story: "Security has discovered something alarming — a <strong>terminated employee</strong> is still receiving payments and has been accessing company systems. This is a serious breach. Find the ghost.",
+    question: "Find the last name of the employee whose status is 'terminated' and appears in the access_log. Your answer is their last name.",
+    tables: ["access_log", "employees"],
+    answer: "WERNER",
+    hint: "JOIN access_log to employees and filter WHERE status = 'terminated'"
+  },
+  {
+    title: "The Double Agent",
+    difficulty: 3,
+    story: "The Legal team is under scrutiny. Intelligence suggests one of their employees was assigned to a <strong>cancelled project</strong> AND also accessed the LEGAL_VAULT system — a combination that points to an inside leak.",
+    question: "Find the last name of the Legal department employee assigned to a cancelled project who also has a 'download' action in the access_log. Answer with their last name.",
+    tables: ["employees", "departments", "assignments", "projects", "access_log"],
+    answer: "MARSH",
+    hint: "You need 5 JOINs. Filter: dept name = 'Legal', project status = 'cancelled', action = 'download'"
+  },
+  {
+    title: "The Resource Hoarder",
+    difficulty: 3,
+    story: "One employee has been quietly accumulating hours across multiple projects — far more than anyone else at MegaCorp. The ops team suspects <strong>timesheet inflation</strong>. You need the total.",
+    question: "Find the name and total assigned hours of the employee with the highest sum of hours across all projects. Your answer is the total hours number.",
+    tables: ["assignments", "employees"],
+    answer: "680",
+    hint: "SUM(hours), GROUP BY employee, ORDER BY DESC, LIMIT 1"
+  },
+  {
+    title: "The Expense Scandal",
+    difficulty: 4,
+    story: "MegaCorp has a strict rule: <strong>no expense over $10,000 can be self-approved</strong>. Someone shattered this rule — and the amount is staggering. The amount itself is your next key.",
+    question: "Find the employee who submitted an expense over $10,000 where approved_by equals their own employee_id. Your answer is the transaction amount.",
+    tables: ["transactions", "employees"],
+    answer: "48000",
+    hint: "Filter: type = 'expense', amount > 10000, approved_by = employee_id"
+  },
+  {
+    title: "The Saboteur",
+    difficulty: 4,
+    story: "The Data Science model repository has been tampered with. The security log shows that someone <strong>logged in, downloaded files, AND deleted files</strong> on the same system on the same day. Find the saboteur.",
+    question: "Find the employee who performed a 'login', 'download', AND 'delete' action on the same system_name on the same date. Hint: use substr(log_date, 1, 10) to extract just the date. Answer with their last name.",
+    tables: ["access_log", "employees"],
+    answer: "ASANTE",
+    hint: "GROUP BY employee, system, date — use HAVING with three SUM(CASE WHEN ...) conditions"
+  },
+  {
+    title: "BOSS: The Mastermind",
+    difficulty: 5,
+    story: "You've uncovered fraud, ghost employees, a saboteur, and a terminated spy. But someone is orchestrating it all. Intelligence points to a <strong>manager</strong> whose direct reports collectively received the highest total in salary and bonus payments. Find the Mastermind.",
+    question: "Find the manager whose direct reports have the highest combined salary + bonus transaction total. Answer with their last name.",
+    tables: ["employees", "transactions"],
+    answer: "HARLOW",
+    hint: "JOIN employees to themselves on manager_id, JOIN to transactions, filter type IN ('salary','bonus'), GROUP BY manager"
+  }
+];
+
+const SCHEMA = [
+  { name: "employees", fields: [
+    { col: "id", type: "INTEGER PK" },
+    { col: "name", type: "TEXT" },
+    { col: "dept_id", type: "INTEGER → departments.id" },
+    { col: "manager_id", type: "INTEGER → employees.id" },
+    { col: "salary", type: "REAL" },
+    { col: "hire_date", type: "TEXT (YYYY-MM-DD)" },
+    { col: "status", type: "TEXT ('active'|'terminated')" }
+  ]},
+  { name: "departments", fields: [
+    { col: "id", type: "INTEGER PK" },
+    { col: "name", type: "TEXT" },
+    { col: "location", type: "TEXT" },
+    { col: "budget", type: "REAL" }
+  ]},
+  { name: "projects", fields: [
+    { col: "id", type: "INTEGER PK" },
+    { col: "name", type: "TEXT" },
+    { col: "dept_id", type: "INTEGER → departments.id" },
+    { col: "budget", type: "REAL" },
+    { col: "start_date", type: "TEXT" },
+    { col: "end_date", type: "TEXT (nullable)" },
+    { col: "status", type: "TEXT ('active'|'completed'|'cancelled')" }
+  ]},
+  { name: "assignments", fields: [
+    { col: "employee_id", type: "INTEGER → employees.id" },
+    { col: "project_id", type: "INTEGER → projects.id" },
+    { col: "hours", type: "REAL" },
+    { col: "role", type: "TEXT" }
+  ]},
+  { name: "transactions", fields: [
+    { col: "id", type: "INTEGER PK" },
+    { col: "employee_id", type: "INTEGER → employees.id" },
+    { col: "amount", type: "REAL" },
+    { col: "type", type: "TEXT ('salary'|'bonus'|'expense'|'penalty')" },
+    { col: "tx_date", type: "TEXT (YYYY-MM-DD)" },
+    { col: "approved_by", type: "INTEGER → employees.id" }
+  ]},
+  { name: "access_log", fields: [
+    { col: "id", type: "INTEGER PK" },
+    { col: "employee_id", type: "INTEGER → employees.id" },
+    { col: "system_name", type: "TEXT" },
+    { col: "action", type: "TEXT ('login'|'download'|'delete'|'modify')" },
+    { col: "log_date", type: "TEXT (YYYY-MM-DD HH:MM)" }
+  ]}
+];
+
+// ─────────────────────────────────────────────
+//  STATE  (persisted in localStorage)
+// ─────────────────────────────────────────────
+let state = {
+  playerName: '',
+  dbUrl: '',
+  currentRoom: 0,
+  startTime: null,
+  roomTimes: [],
+  totalWrong: 0,
+  roomWrong: 0,
+  completed: false
+};
+
+function saveState() {
+  localStorage.setItem('megacorp_state', JSON.stringify(state));
+}
+
+function loadState() {
+  const s = localStorage.getItem('megacorp_state');
+  if (s) {
+    try { state = JSON.parse(s); return true; } catch(e) {}
+  }
+  return false;
+}
+
+// ─────────────────────────────────────────────
+//  LEADERBOARD  (shared via localStorage key)
+// ─────────────────────────────────────────────
+function getLeaderboard() {
+  try {
+    return JSON.parse(localStorage.getItem('megacorp_lb') || '[]');
+  } catch(e) { return []; }
+}
+
+function updateLeaderboard() {
+  const lb = getLeaderboard();
+  const existing = lb.findIndex(e => e.name === state.playerName);
+  const elapsed = state.startTime ? Math.floor((Date.now() - state.startTime) / 1000) : 0;
+  const entry = {
+    name: state.playerName,
+    room: state.currentRoom + 1,
+    completed: state.completed,
+    elapsed,
+    wrong: state.totalWrong
+  };
+  if (existing >= 0) lb[existing] = entry;
+  else lb.push(entry);
+  lb.sort((a, b) => {
+    if (a.completed !== b.completed) return b.completed - a.completed;
+    if (a.room !== b.room) return b.room - a.room;
+    return a.elapsed - b.elapsed;
+  });
+  localStorage.setItem('megacorp_lb', JSON.stringify(lb));
+}
+
+function renderLeaderboard() {
+  const lb = getLeaderboard();
+  const el = document.getElementById('leaderboard-list');
+  if (!lb.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;padding:2rem;">No players yet</div>';
+    return;
+  }
+  const rankLabel = (i) => {
+    if (i === 0) return '<span class="lb-rank gold">①</span>';
+    if (i === 1) return '<span class="lb-rank silver">②</span>';
+    if (i === 2) return '<span class="lb-rank bronze">③</span>';
+    return `<span class="lb-rank">${i+1}</span>`;
+  };
+  el.innerHTML = lb.map((e, i) => `
+    <div class="lb-row">
+      ${rankLabel(i)}
+      <span class="lb-name">${escHtml(e.name)}</span>
+      <span class="lb-room ${e.completed ? 'done' : ''}">${e.completed ? '✓ Done' : `Room ${e.room}/10`}</span>
+      <span class="lb-time">${fmtTime(e.elapsed)}</span>
+    </div>
+  `).join('');
+}
+
+// ─────────────────────────────────────────────
+//  TIMER
+// ─────────────────────────────────────────────
+let timerInterval = null;
+
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!state.startTime) return;
+    const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+    const el = document.getElementById('timer');
+    el.textContent = fmtTime(elapsed);
+    el.className = 'timer-display' + (elapsed > 3600 ? ' danger' : elapsed > 1800 ? ' warning' : '');
+    updateLeaderboard();
+  }, 1000);
+}
+
+function fmtTime(s) {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${pad(h)}:${pad(m)}:${pad(sec)}`;
+  return `${pad(m)}:${pad(sec)}`;
+}
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+// ─────────────────────────────────────────────
+//  GAME LOGIC
+// ─────────────────────────────────────────────
+function startGame() {
+  const name = document.getElementById('player-name-input').value.trim();
+  const url  = document.getElementById('db-url-input').value.trim();
+  const err  = document.getElementById('login-error');
+
+  if (!name) { err.textContent = '⚠ Enter your name to begin.'; err.style.display = 'block'; return; }
+  if (!url || !url.includes('db-fiddle')) { err.textContent = '⚠ Enter a valid DB-Fiddle URL.'; err.style.display = 'block'; return; }
+
+  err.style.display = 'none';
+  state.playerName = name;
+  state.dbUrl = url;
+  state.currentRoom = 0;
+  state.startTime = Date.now();
+  state.roomTimes = [];
+  state.totalWrong = 0;
+  state.roomWrong = 0;
+  state.completed = false;
+  saveState();
+  updateLeaderboard();
+
+  showScreen('game-screen');
+  renderRoom();
+  renderSchema();
+  startTimer();
+}
+
+function renderRoom() {
+  const r = ROOMS[state.currentRoom];
+  document.getElementById('display-name').textContent = state.playerName;
+  document.getElementById('room-number').textContent = `Room ${String(state.currentRoom + 1).padStart(2,'0')} / 10`;
+  document.getElementById('room-title').textContent = r.title;
+
+  // Difficulty pips
+  const diffEl = document.getElementById('room-difficulty');
+  diffEl.innerHTML = Array.from({length:5}, (_,i) =>
+    `<div class="diff-pip ${i < r.difficulty ? 'on' : ''}"></div>`
+  ).join('');
+
+  document.getElementById('room-story').innerHTML = r.story;
+  document.getElementById('room-question').textContent = r.question;
+
+  document.getElementById('room-tables').innerHTML = r.tables
+    .map(t => `<span class="table-tag">${t}</span>`).join('');
+
+  document.getElementById('db-link-btn').href = state.dbUrl;
+
+  document.getElementById('answer-input').value = '';
+  document.getElementById('answer-feedback').className = 'answer-feedback';
+  document.getElementById('answer-feedback').textContent = '';
+  state.roomWrong = 0;
+  updateAttemptsCounter();
+
+  // Progress pips
+  const prog = document.getElementById('room-progress');
+  prog.innerHTML = ROOMS.map((_, i) => {
+    let cls = 'room-pip';
+    if (i < state.currentRoom) cls += ' done';
+    else if (i === state.currentRoom) cls += ' current';
+    return `<div class="${cls}" title="Room ${i+1}"></div>`;
+  }).join('');
+
+  // Re-add fade
+  const card = document.getElementById('room-card');
+  card.classList.remove('fade-in');
+  void card.offsetWidth;
+  card.classList.add('fade-in');
+}
+
+function updateAttemptsCounter() {
+  const el = document.getElementById('attempts-counter');
+  if (state.roomWrong === 0) { el.textContent = ''; return; }
+  el.textContent = `${state.roomWrong} incorrect attempt${state.roomWrong > 1 ? 's' : ''} on this room`;
+}
+
+function submitAnswer() {
+  const raw = document.getElementById('answer-input').value.trim();
+  if (!raw) return;
+
+  const given   = raw.toUpperCase();
+  const correct = ROOMS[state.currentRoom].answer.toUpperCase();
+  const fb = document.getElementById('answer-feedback');
+
+  if (given === correct) {
+    fb.className = 'answer-feedback correct';
+    fb.textContent = '✓ Correct! Unlocking next room...';
+    flashUnlock();
+
+    state.roomTimes.push(Math.floor((Date.now() - state.startTime) / 1000));
+    state.currentRoom++;
+    saveState();
+    updateLeaderboard();
+
+    setTimeout(() => {
+      if (state.currentRoom >= ROOMS.length) {
+        showWin();
+      } else {
+        renderRoom();
+      }
+    }, 1200);
+
+  } else {
+    state.roomWrong++;
+    state.totalWrong++;
+    saveState();
+    fb.className = 'answer-feedback wrong';
+
+    const hints = [
+      '✗ Not quite. Check your WHERE clause.',
+      '✗ Wrong answer. Re-read the question carefully.',
+      `✗ Still not right. Hint: ${ROOMS[state.currentRoom].hint}`,
+      '✗ Keep going — you\'re close!',
+      '✗ Double-check column names and data types.'
+    ];
+    fb.textContent = hints[Math.min(state.roomWrong - 1, hints.length - 1)];
+    updateAttemptsCounter();
+
+    // Shake input
+    const inp = document.getElementById('answer-input');
+    inp.style.borderColor = 'var(--red)';
+    setTimeout(() => { inp.style.borderColor = ''; }, 800);
+  }
+}
+
+function flashUnlock() {
+  const el = document.createElement('div');
+  el.className = 'unlock-flash';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 700);
+}
+
+function showWin() {
+  state.completed = true;
+  saveState();
+  updateLeaderboard();
+  clearInterval(timerInterval);
+
+  const elapsed = state.startTime ? Math.floor((Date.now() - state.startTime) / 1000) : 0;
+  document.getElementById('win-player-name').textContent = `${state.playerName} — investigation complete`;
+  document.getElementById('win-time').textContent = fmtTime(elapsed);
+  document.getElementById('win-attempts').textContent = state.totalWrong;
+  showScreen('win-screen');
+}
+
+function playAgain() {
+  localStorage.removeItem('megacorp_state');
+  location.reload();
+}
+
+// ─────────────────────────────────────────────
+//  SCHEMA RENDER
+// ─────────────────────────────────────────────
+function renderSchema() {
+  document.getElementById('schema-display').innerHTML = SCHEMA.map(t => `
+    <div class="schema-table">
+      <div class="schema-table-name">◈ ${t.name}</div>
+      <div class="schema-fields">${t.fields.map(f =>
+        `${f.col} &nbsp;<span>${f.type}</span>`
+      ).join('<br>')}</div>
+    </div>
+  `).join('');
+}
+
+// ─────────────────────────────────────────────
+//  UI HELPERS
+// ─────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).style.display = 'block';
+  btn.classList.add('active');
+  if (id === 'lb-tab') renderLeaderboard();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─────────────────────────────────────────────
+//  INIT — resume if saved state exists
+// ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  if (loadState() && state.playerName && !state.completed && state.currentRoom < ROOMS.length) {
+    // Offer to resume
+    const resumeDiv = document.createElement('div');
+    resumeDiv.style.cssText = 'margin-top:1rem;';
+    resumeDiv.innerHTML = `
+      <div class="card fade-in" style="margin-top:1rem;border-color:var(--accent);">
+        <div class="card-title">▸ Resume Session</div>
+        <p style="font-family:var(--mono);font-size:13px;color:var(--muted);margin-bottom:1rem;">
+          Found a saved session for <strong style="color:var(--text)">${escHtml(state.playerName)}</strong> — Room ${state.currentRoom + 1}/10
+        </p>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="resumeGame()">▶ Resume</button>
+          <button class="btn btn-ghost" onclick="this.closest('.card').remove()">Start Fresh</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('login-screen').appendChild(resumeDiv);
+  }
+});
+
+function resumeGame() {
+  showScreen('game-screen');
+  renderRoom();
+  renderSchema();
+  startTimer();
+}
+</script>
+</body>
+</html>
