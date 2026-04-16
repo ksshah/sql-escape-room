@@ -806,40 +806,40 @@
 // ─────────────────────────────────────────────
 const ROOMS = [
   {
-    title: "The New Hire Mystery",
+    title: "Headcount Report",
     difficulty: 1,
-    story: "Welcome to MegaCorp Industries. It's your first day in the Investigations Unit. HR has flagged an anomaly — someone was hired in <strong>2023</strong> but was never assigned to a department. Before they receive another paycheck, you need to find them.",
-    question: "Find the full name of the employee who was hired in 2023 and has no department assigned.",
+    story: "Welcome to MegaCorp Industries. It's your first day in the Investigations Unit. Before anything else, your manager needs a quick sanity check — <strong>how many employees</strong> are currently in the system? Simple question. Prove you know how to query a database.",
+    question: "How many employees are in the employees table? Your answer is the number.",
     tables: ["employees"],
-    answer: "JORDAN BLAKE",
-    hint: "Look for NULL values in the dept_id column"
+    answer: "40",
+    hint: "SELECT COUNT(*) FROM employees"
   },
   {
-    title: "The Phantom Project",
+    title: "Engineering Roll Call",
     difficulty: 1,
-    story: "The CFO is furious. A project has a <strong>$1.5 million budget</strong> approved — but nobody has been assigned to it yet. Finance needs the exact budget figure to freeze the account before more funds are allocated.",
-    question: "Find the name and budget of any active project that has no employees assigned to it. Your answer is the budget number only.",
-    tables: ["projects", "assignments"],
-    answer: "1500000",
-    hint: "Use a LEFT JOIN and filter for NULLs on the joined side"
-  },
-  {
-    title: "The Bonus Bandit",
-    difficulty: 2,
-    story: "An internal audit has flagged unusual activity in the Finance department. Someone has been approving <strong>multiple bonus payments for themselves</strong> in a single month. The auditors need a name.",
-    question: "Find the name of the employee who received more than 3 bonus transactions in January 2024 where approved_by equals their own employee id.",
-    tables: ["transactions", "employees"],
-    answer: "DEREK VOSS",
-    hint: "GROUP BY employee, HAVING COUNT(*) > 3, and filter where approved_by = employee_id"
-  },
-  {
-    title: "The Overachiever",
-    difficulty: 2,
-    story: "The compensation committee has flagged potential pay equity issues. They need to identify everyone earning above their <strong>own department's average salary</strong>. The first name on the list — sorted by salary descending — is the most extreme case.",
-    question: "List employees who earn more than their department's average salary, ordered by salary descending. Your answer is the last name of the first person in the list.",
+    story: "The Security team is doing a building access audit. They need a count of all <strong>active employees in Engineering</strong> (dept_id = 1) to cross-check against their badge records. How many are there?",
+    question: "How many employees have a status of 'active' and a dept_id of 1? Your answer is the number.",
     tables: ["employees"],
-    answer: "HARLOW",
-    hint: "Use a correlated subquery: WHERE salary > (SELECT AVG(salary) FROM employees e2 WHERE e2.dept_id = e.dept_id)"
+    answer: "6",
+    hint: "Use WHERE with two conditions joined by AND"
+  },
+  {
+    title: "The Big Department",
+    difficulty: 2,
+    story: "HR is restructuring the org chart and needs to know which department has the <strong>most headcount</strong>. They want the dept_id of the largest department — not the name, just the ID number.",
+    question: "Which dept_id has the most employees? Your answer is the dept_id number.",
+    tables: ["employees"],
+    answer: "1",
+    hint: "GROUP BY dept_id, then ORDER BY count maybe"
+  },
+  {
+    title: "The Big Spender",
+    difficulty: 2,
+    story: "The CFO is reviewing department budgets before the board meeting. She wants to know which department was allocated the <strong>highest budget</strong> of all. Find it fast — the meeting starts in 10 minutes.",
+    question: "What is the name of the department with the highest budget?",
+    tables: ["departments"],
+    answer: "EXECUTIVE",
+    hint: "ORDER BY budget DESC, LIMIT 1 — no JOIN needed"
   },
   {
     title: "The Ghost Payroll",
@@ -851,21 +851,12 @@ const ROOMS = [
     hint: "JOIN access_log to employees and filter WHERE status = 'terminated'"
   },
   {
-    title: "The Double Agent",
-    difficulty: 3,
-    story: "The Legal team is under scrutiny. Intelligence suggests one of their employees was assigned to a <strong>cancelled project</strong> AND also accessed the LEGAL_VAULT system — a combination that points to an inside leak.",
-    question: "Find the last name of the Legal department employee assigned to a cancelled project who also has a 'download' action in the access_log. Answer with their last name.",
-    tables: ["employees", "departments", "assignments", "projects", "access_log"],
-    answer: "MARSH",
-    hint: "You need 5 JOINs. Filter: dept name = 'Legal', project status = 'cancelled', action = 'download'"
-  },
-  {
     title: "The Resource Hoarder",
     difficulty: 3,
-    story: "One employee has been quietly accumulating hours across multiple projects — far more than anyone else at MegaCorp. The ops team suspects <strong>timesheet inflation</strong>. You need the total.",
-    question: "Find the name and total assigned hours of the employee with the highest sum of hours across all projects. Your answer is the total hours number.",
-    tables: ["assignments", "employees"],
-    answer: "680",
+    story: "One employee has been quietly accumulating hours across multiple projects — far more than anyone else at MegaCorp. The ops team suspects <strong>timesheet inflation</strong>. Find the culprit.",
+    question: "Find the name of the employee with the highest total assigned hours across all projects. Your answer is their last name.",
+    tables: ["assignments","employees"],
+    answer: "CHEN",
     hint: "SUM(hours), GROUP BY employee, ORDER BY DESC, LIMIT 1"
   },
   {
@@ -878,13 +869,22 @@ const ROOMS = [
     hint: "Filter: type = 'expense', amount > 10000, approved_by = employee_id"
   },
   {
-    title: "The Saboteur",
+    title: "Ghosts of Projects Past",
     difficulty: 4,
-    story: "The Data Science model repository has been tampered with. The security log shows that someone <strong>logged in, downloaded files, AND deleted files</strong> on the same system on the same day. Find the saboteur.",
-    question: "Find the employee who performed a 'login', 'download', AND 'delete' action on the same system_name on the same date. Hint: use substr(log_date, 1, 10) to extract just the date. Answer with their last name.",
-    tables: ["access_log", "employees"],
-    answer: "ASANTE",
-    hint: "GROUP BY employee, system, date — use HAVING with three SUM(CASE WHEN ...) conditions"
+    story: "The ops team has flagged a resource allocation concern — some employees are still listed as assigned to projects that are no longer active (either completed or cancelled). Until they're formally reassigned, MegaCorp is carrying a liability. Find out how many people are affected.",
+    question: "How many unique employees are currently assigned to projects that are no longer active (status is either 'completed' or 'cancelled')? Your answer is the number.",
+    tables: ["assignments", "projects"],
+    answer: "18",
+    hint: "COUNT(DISTINCT ...), JOIN assignments to projects, filter WHERE status != 'active'"
+  },
+  {
+    title: "The Double Agent",
+    difficulty: 3,
+    story: "The Legal team is under scrutiny. Intelligence suggests one of their employees was assigned to a <strong>cancelled project</strong> AND also accessed the LEGAL_VAULT system — a combination that points to an inside leak.",
+    question: "Find the last name of the Legal department employee assigned to a cancelled project who also has a 'download' action in the access_log. Answer with their last name.",
+    tables: ["employees", "departments", "assignments", "projects", "access_log"],
+    answer: "MARSH",
+    hint: "You need 5 JOINs. Filter: dept name = 'Legal', project status = 'cancelled', action = 'download'"
   },
   {
     title: "BOSS: The Mastermind",
