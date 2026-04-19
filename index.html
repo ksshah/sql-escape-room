@@ -622,6 +622,57 @@
     margin-top: 0.5rem;
     letter-spacing: 1px;
   }
+
+  /* ── MISSION BRIEFING ── */
+  .briefing-section {
+    margin-bottom: 1.25rem;
+  }
+
+  .briefing-section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+
+  .briefing-intro {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #b8c8e0;
+    margin-bottom: 1.25rem;
+  }
+
+  .briefing-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .briefing-list li {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #b8c8e0;
+    padding-left: 1rem;
+    position: relative;
+  }
+
+  .briefing-list li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+  }
+
+  .briefing-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.25rem 0;
+  }
 </style>
 </head>
 <body>
@@ -635,14 +686,74 @@
     <div class="header-sub">// SECURITY INVESTIGATION UNIT //</div>
   </div>
 
+  <!-- INSTRUCTIONS SCREEN -->
+  <div id="instructions-screen" class="screen active">
+    <div class="card fade-in" style="max-width:640px;margin:0 auto;">
+      <div class="card-title">◈ Mission Briefing</div>
+
+      <p class="briefing-intro">
+        You have been recruited into MegaCorp's Investigations Unit. The company is riddled with fraud, ghost employees, and corporate conspiracies — and you're the only one who can uncover the truth.
+      </p>
+
+      <div class="briefing-section">
+        <div class="briefing-section-title">How it works</div>
+        <ul class="briefing-list">
+          <li>You will be given 10 rooms to investigate, each with a story and a SQL challenge</li>
+          <li>Use the DB-Fiddle link in each room to query the MegaCorp database — <a href="https://www.db-fiddle.com/f/tzyrRvSjUuK6WwnfJZpnKC/2" target="_blank" style="color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(0,212,255,0.4);">here's the database</a> you'll be working with. DB-Fiddle is a free SQL sandbox that runs in your browser — no setup needed. Once open, write your queries in the <strong style="color:var(--text);">Query SQL</strong> panel on the right. Do not edit the <strong style="color:var(--text);">Schema SQL</strong> panel on the left — that controls the database structure and data, and changing it will break your queries</li>
+          <li>Your query result is your answer — type it in and submit to unlock the next room</li>
+          <li>Answers are not case-sensitive — harlow, HARLOW, and Harlow all work</li>
+        </ul>
+      </div>
+
+      <hr class="briefing-divider">
+
+      <div class="briefing-section">
+        <div class="briefing-section-title">Tools at your disposal</div>
+        <ul class="briefing-list">
+          <li><strong style="color:var(--text);">◈ Current Room</strong> — your active challenge</li>
+          <li><strong style="color:var(--text);">⊞ Schema</strong> — the full MegaCorp database structure, available at any time</li>
+        </ul>
+      </div>
+
+      <hr class="briefing-divider">
+
+      <div class="briefing-section">
+        <div class="briefing-section-title">Hints</div>
+        <ul class="briefing-list">
+          <li>Wrong answers unlock progressive hints — the more you try, the more guidance you get</li>
+        </ul>
+      </div>
+
+      <hr class="briefing-divider">
+
+      <div class="briefing-section">
+        <div class="briefing-section-title">Tips for beginners</div>
+        <ul class="briefing-list">
+          <li>Always check the Schema tab first to understand what tables and columns are available</li>
+          <li>Start simple — write a basic SELECT first, then add WHERE, JOIN, and GROUP BY</li>
+          <li>Your query can return more columns than needed — only the specific answer value matters</li>
+        </ul>
+      </div>
+
+      <hr class="briefing-divider">
+
+      <button class="btn btn-primary" onclick="showScreen('login-screen')">
+        <span>▶</span> Begin Investigating
+      </button>
+    </div>
+  </div>
+
   <!-- LOGIN SCREEN -->
-  <div id="login-screen" class="screen active">
-    <div class="card fade-in">
+  <div id="login-screen" class="screen">
+    <div class="card fade-in" style="max-width:440px;margin:0 auto;">
       <div class="card-title">▸ Agent Login</div>
       <label for="player-name-input">Your name</label>
       <input type="text" id="player-name-input" placeholder="e.g. Sarah Chen" maxlength="30" autocomplete="off" />
       <label for="db-url-input">DB-Fiddle URL (provided by host)</label>
       <input type="text" id="db-url-input" placeholder="https://www.db-fiddle.com/f/..." />
+      <p style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:1rem;">
+        The investigation starts the moment you hit Begin. Good luck, Agent.
+      </p>
       <button class="btn btn-primary" onclick="startGame()">
         <span>▶</span> Begin Investigation
       </button>
@@ -1031,7 +1142,8 @@ function escHtml(s) {
 // ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   if (loadState() && state.playerName && !state.completed && state.currentRoom < ROOMS.length) {
-    // Offer to resume
+    // Skip instructions and go straight to login with resume option
+    showScreen('login-screen');
     const resumeDiv = document.createElement('div');
     resumeDiv.style.cssText = 'margin-top:1rem;';
     resumeDiv.innerHTML = `
