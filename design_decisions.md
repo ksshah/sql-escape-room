@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-04-19 — Add instructions screen before agent login
+
+Added a dedicated mission briefing screen as the first thing players see, with a "Begin Investigating" button that leads to the login form.
+
+**Why:** Players were landing straight on the login form with no context. A separate instructions screen gives beginners the onboarding they need — how the game works, how to use DB-Fiddle, and SQL tips — without cluttering the login itself.
+
+---
+
 ## 2026-04-18 — Move room data to rooms.js
 
 Extracted the `ROOMS` array (questions, answers, hints, stories) from `index.html` into a separate `rooms.js` file, loaded via `<script src="rooms.js">`.
