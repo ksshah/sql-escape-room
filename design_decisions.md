@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-04-19 — Replace DB-Fiddle with embedded SQLite via sql.js
+
+Removed the dependency on DB-Fiddle entirely. The MegaCorp database is now embedded directly in the page as a base64-encoded SQLite file, loaded at runtime by sql.js — a WebAssembly port of SQLite. Each room has a built-in SQL editor where players write and run queries locally in their browser.
+
+**Why:** DB-Fiddle introduced friction — players had to open an external tab, figure out the interface, and avoid accidentally editing the Schema SQL panel. It was also a runtime dependency outside our control. Embedding the database makes the game fully self-contained: no external tools, no setup, no broken links. The experience is faster, simpler, and more beginner-friendly.
+
+---
+
 ## 2026-04-19 — Add instructions screen before agent login
 
 Added a dedicated mission briefing screen as the first thing players see, with a "Begin Investigating" button that leads to the login form.
