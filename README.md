@@ -76,11 +76,28 @@ This game is designed to be run as a **facilitated session** — a workshop, mee
 ```
 index.html               — game UI and logic
 rooms.js                 — all 10 rooms (questions, answers, hints, stories)
-sql_schema.sql           — database schema and seed data
-wid_sql_escape_room.db   — SQLite database file
+db.js                    — MegaCorp database encoded as base64 (used by sql.js at runtime)
+sql_schema.sql           — source of truth for the database schema and seed data
+wid_sql_escape_room.db   — compiled SQLite binary, used to generate db.js
 design_decisions.md      — log of key decisions and the reasoning behind them
 future_features.md       — ideas for future improvements
 ```
+
+### How the database works
+
+The game runs entirely in the browser using [sql.js](https://sql.js.org), a WebAssembly port of SQLite. The database is embedded in `db.js` as a base64 string — no external database or server needed.
+
+`wid_sql_escape_room.db` and `db.js` are both generated from `sql_schema.sql`, which is the source of truth. If you ever need to update the database (e.g. add new data for new questions), here's how to rebuild:
+
+```bash
+# 1. Recreate the .db file from the schema
+sqlite3 wid_sql_escape_room.db < sql_schema.sql
+
+# 2. Regenerate db.js from the new .db file
+echo "const DB_BASE64 = \"$(base64 -i wid_sql_escape_room.db)\";" > db.js
+```
+
+`wid_sql_escape_room.db` is not used at runtime — only `db.js` is. But keep it in the repo as it makes rebuilding straightforward.
 
 ---
 
