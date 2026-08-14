@@ -8,7 +8,7 @@ A browser-based SQL learning game where players take on the role of an investiga
 
 ## What is this?
 
-The SQL Escape Room is a 10-room investigation game where each room presents a story-driven scenario and a SQL challenge. Players query a real database in [DB-Fiddle](https://www.db-fiddle.com/f/tzyrRvSjUuK6WwnfJZpnKC/2) and submit their answer to unlock the next room.
+The SQL Escape Room is a 10-room investigation game where each room presents a story-driven scenario and a SQL challenge. Players query a real database that runs entirely in the browser and submit their answer to unlock the next room.
 
 It's designed for **SQL beginners** — no setup, no installation, just open the link and start querying.
 
@@ -18,8 +18,8 @@ It's designed for **SQL beginners** — no setup, no installation, just open the
 
 1. Open the live site
 2. Read the mission briefing and click **Begin Investigating**
-3. Enter your name and the DB-Fiddle URL provided by the host
-4. For each room, read the story, open DB-Fiddle, write your SQL query, and submit the result
+3. Enter your name 
+4. For each room, read the story, put your query in the "Query the database" block, write your SQL query, look at the answer and submit the result
 5. Wrong answers unlock progressive hints — the more you try, the more guidance you get
 
 **Answers are not case-sensitive** — `harlow`, `HARLOW`, and `Harlow` all work.
@@ -64,10 +64,8 @@ Rooms cover: `SELECT`, `WHERE`, `COUNT`, `GROUP BY`, `ORDER BY`, `JOIN`, `SUM`, 
 
 This game is designed to be run as a **facilitated session** — a workshop, meetup, or classroom.
 
-1. Set up the database in [DB-Fiddle](https://www.db-fiddle.com) using `sql_schema.sql`
-2. Share the DB-Fiddle URL with participants at the start of the session
-3. Participants enter the URL on the login screen — this is how everyone queries the same database
-4. No server or backend required — everything runs in the browser
+1. Participants enter the URL on the login screen — this is how everyone queries the same database
+2. No server or backend required — everything runs in the browser
 
 ---
 
